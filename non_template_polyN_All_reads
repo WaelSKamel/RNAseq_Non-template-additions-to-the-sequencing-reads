@@ -1,0 +1,50 @@
+#!/usr/bin/perl -w
+$samfile = $ARGV[0];
+
+open FILEONE, $samfile ;
+
+
+%read_sc_pos_N = ();
+
+
+while (<FILEONE>)
+
+{
+chomp;
+
+@array = split(/\t/, $_);
+
+#select strand and matching patteren
+# adding () in the matching will capture this patteren in a variable, you can call later if you want as follows
+#The $number variables contain the parts of the string that matched the capture groups ( ... ) in the pattern for your last regex match if the match was successful.
+
+if($array[1]==0 && $array[5] =~ /(\d+)M(\d+)S/ ) #capture the number of N of the matched N as $1 and ones labelled as softclip $2
+{
+
+$start_read=$array[3];
+$length_matched= $1;
+$lenght_softclip= $2;
+$chr=$array[2];
+@sequence = split(//, $array[9]);
+$y=1; # beginig of the sc
+$postion= 0;
+foreach $ele(@sequence[$length_matched..$#sequence ] ) #loop form the start of the softclip, remember length is start with one and array ele starts with0
+{
+$postion=$start_read+$length_matched+ $y;
+$value="$chr\t$postion\t$ele";
+$read_sc_pos_N{$value}++;
+$y++;
+
+}
+$postion=0;
+}
+}
+
+
+print "Chr.\t Nucleotide pos.\t Nontemplate Nucleotide\tCounts \n";
+
+foreach $key (keys %read_sc_pos_N) 
+{print "$key\t$read_sc_pos_N{$key}\n";
+}
+
+
